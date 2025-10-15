@@ -66,7 +66,30 @@ def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
     ######################################################################
     #                        PARTIE VALIDATION                           #
     ######################################################################
-
+    # Traitement de la validation data
+    val_images_dir = os.path.join(VAL_DIR, 'C-NMC_test_prelim_phase_data')
+    val_labels_csv = os.path.join(VAL_DIR, 'C-NMC_test_prelim_phase_data_labels.csv')
+    
+    if os.path.isdir(val_images_dir) and os.path.isfile(val_labels_csv):
+        print(f"  -> Traitement de la validation data")
+        # Lire le CSV des labels
+        labels_df = pd.read_csv(val_labels_csv)
+        # Mapper les labels : 0 -> 'hem', 1 -> 'all'
+        label_mapping = {0: 'hem', 1: 'all'}
+        labels_df['labels'] = labels_df['labels'].map(label_mapping)
+        
+        # Parcourir les images
+        for file_name in os.listdir(val_images_dir):
+            if file_name.endswith(('.jpg', '.jpeg', '.png', '.bmp')):
+                # Trouver le label correspondant via new_names
+                matching_row = labels_df[labels_df['new_names'] == file_name]
+                if not matching_row.empty:
+                    label = matching_row['labels'].values[0]
+                    all_filepaths.append(os.path.join(val_images_dir, file_name))
+                    all_labels.append(label)
+                    all_sets.append('validation')
+                else:
+                    print(f"Avertissement : Pas de label trouvé pour {file_name}")
     # Création de la DataFrame Finale
     if not all_filepaths:
         print("\nERREUR : Aucune image trouvée. Vérifiez le chemin DATA_ROOT_DIR et la structure des dossiers.")
