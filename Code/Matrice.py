@@ -42,22 +42,11 @@ def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
                 labels_name = 'hem'
             elif base == 'all' :
                 labels_name = 'all'
-
-
-            
-        for fold_name, set_name in fold_mapping.items():
-            fold_path = os.path.join(root_dir, fold_name)
-            if os.path.isdir(fold_path):
-                print(f"  -> Traitement de {fold_name} ({set_name})")
-                # Parcourir les dossiers de classes 'hem' et 'all'
-                for class_name in ['hem', 'all']:
-                    class_path = os.path.join(fold_path, class_name)
-                    if os.path.isdir(class_path):
-                        for file_name in os.listdir(class_path):
-                            if file_name.endswith(('.jpg', '.jpeg', '.png', '.bmp')):
-                                all_filepaths.append(os.path.join(class_path, file_name))
-                                all_labels.append(class_name)
-                                all_sets.append(set_name)
+                    for file_name in os.listdir(class_path):
+                        if file_name.endswith(('.jpg', '.jpeg', '.png', '.bmp')):
+                            all_filepaths.append(os.path.join(root, file_name))
+                            all_labels.append(labels_name)
+                            all_sets.append(set_name)
 
     ######################################################################
     #                         PARTIE TESTING                             #
