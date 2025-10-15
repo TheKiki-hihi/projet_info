@@ -33,8 +33,12 @@ def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
     #                         PARTIE TRAINING                            #
     ######################################################################
 
-    if os.path.isdir(root_dir):
-        # Parcourir les dossiers fold_0, fold_1, fold_2
+    if os.path.isdir(train_dir):
+        # Parcourir les dossiers de train_dir
+        for dirs, files in os.walk(train_dir):
+
+
+            
         for fold_name, set_name in fold_mapping.items():
             fold_path = os.path.join(root_dir, fold_name)
             if os.path.isdir(fold_path):
