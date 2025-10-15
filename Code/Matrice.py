@@ -160,4 +160,4 @@ if not dataset_df.empty:
         else:
             print("Erreur lors du traitement de l'image.")
 else:
-    print("Aucune image trouvée dans le dataset.")
+    print(" image trouvée dans le dataset.")
