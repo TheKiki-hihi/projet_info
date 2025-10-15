@@ -28,6 +28,7 @@ def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
     all_sets = []
 
     # print(f"-> Traitement du dossier racine : {root_dir}")
+    
     ######################################################################
     #                         PARTIE TRAINING                            #
     ######################################################################
@@ -47,6 +48,14 @@ def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
                                 all_filepaths.append(os.path.join(class_path, file_name))
                                 all_labels.append(class_name)
                                 all_sets.append(set_name)
+
+    ######################################################################
+    #                         PARTIE TESTING                             #
+    ######################################################################
+
+    ######################################################################
+    #                        PARTIE VALIDATION                           #
+    ######################################################################
 
     # Création de la DataFrame Finale
     if not all_filepaths:
