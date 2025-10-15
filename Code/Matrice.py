@@ -42,7 +42,7 @@ def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
                 labels_name = 'hem'
             elif base == 'all' :
                 labels_name = 'all'
-                    for file_name in os.listdir(class_path):
+                    for file_name in os.listdir(root):
                         if file_name.endswith(('.jpg', '.jpeg', '.png', '.bmp')):
                             all_filepaths.append(os.path.join(root, file_name))
                             all_labels.append(labels_name)
