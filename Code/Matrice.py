@@ -13,14 +13,14 @@ VAL_DIR = 'C-NMC_Leukemia/validation_data'
 
 def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
     """
-    Parcourt la structure de dossiers fournie (fold_0, fold_1, fold_2)
+    Parcourt les différents dossiers training, testing, validation 
     pour créer une DataFrame contenant les chemins de fichiers et leurs étiquettes.
 
     Args:
-        root_dir (str): Le chemin du dossier racine (contenant fold_0, fold_1, fold_2).
+        train_dir, test_dir, val_dir: Le chemin du dossier racine en question.
 
     Returns:
-        pd.DataFrame: Une DataFrame avec les colonnes ['filepaths', 'labels', 'set'].
+        pd.DataFrame: Une DataFrame avec les colonnes ['filepaths', 'labels', 'set'] 
     """
 
     all_filepaths = []
