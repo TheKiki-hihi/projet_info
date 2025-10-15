@@ -99,9 +99,32 @@ def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
 
     return final_df
 
-# --- PARAMÈTRES GLOBAUX (à ajuster si nécessaire) ---
-# La taille que votre modèle attend (comme 224x224 dans votre code Jupyter)
-IMAGE_TAILLE = (224, 224)
+
+def charger_et_normaliser_image(chemin_image: str, taille: tuple) -> np.ndarray | None:
+    """
+    Charge une image, la redimensionne, la convertit en RGB, et la normalise
+    pour que les valeurs de pixels soient comprises entre 0.0 et 1.0 (float32).
+    """
+    if not os.path.exists(chemin_image):
+        return None
+
+    # Chargement de l'image en BGR (standard OpenCV)
+    image = cv2.imread(chemin_image, cv2.IMREAD_COLOR)
+    if image is None:
+        return None
+
+    # Redimensionnement à la taille cible (224x224)
+    image_redimensionnee = cv2.resize(image, taille, interpolation=cv2.INTER_LINEAR)
+    
+    # Conversion BGR -> RGB (la convention standard pour les modèles de ML/DL)
+    image_rgb = cv2.cvtColor(image_redimensionnee, cv2.COLOR_BGR2RGB)
+    
+    # Normalisation : Division par 255.0 pour mettre les valeurs entre 0.0 et 1.0
+    # Le type est forcé à float32 (standard en Machine Learning)
+    image_normalisee = image_rgb.astype('float32') / 255.0
+    
+    return image_normalisee # Forme (224, 224, 3), valeurs entre [0.0, 1.0]
+    
 
 def charger_et_encoder_image(chemin_image: str) -> np.ndarray | None:
     """
