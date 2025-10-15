@@ -46,7 +46,7 @@ def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
                         if file_name.endswith(('.jpg', '.jpeg', '.png', '.bmp')):
                             all_filepaths.append(os.path.join(root, file_name))
                             all_labels.append(labels_name)
-                            all_sets.append(set_name)
+                            all_sets.append('train')
 
     ######################################################################
     #                         PARTIE TESTING                             #
