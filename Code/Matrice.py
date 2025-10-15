@@ -38,7 +38,10 @@ def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
         for dirs, files in os.walk(train_dir):
             for root, dirs, files in os.walk(train_dir):
             base = os.path.basename(root).casefold() # prend la fin du chemin et le mets comme nom de dossier pour creer classe et convertit en minuscule
-            if base 
+            if base == 'hem':
+                labels_name = 'hem'
+            elif base == 'all' :
+                labels_name = 'all'
 
 
             
