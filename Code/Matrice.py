@@ -128,6 +128,12 @@ def charger_et_normaliser_image(chemin_image: str, taille: tuple) -> np.ndarray 
     image_normalisee = image_rgb.astype('float32') / 255.0
     
     return image_normalisee # Forme (224, 224, 3), valeurs entre [0.0, 1.0]
+
+def charger_et_normaliser_image(chemin_image: str, taille: tuple) -> np.ndarray | None:
+    """
+    Charge une image, la redimensionne, la convertit en RGB, et la normalise
+    pour que les valeurs de pixels soient comprises entre 0.0 et 1.0 (float32).
+    """
     
 
 
