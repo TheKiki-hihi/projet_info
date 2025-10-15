@@ -6,8 +6,10 @@ import os
 
 # --- PARAMÈTRES ET CHEMINS D'ACCÈS ---
 
-# Chemin du dossier contenant les images de cellules
-DATA_ROOT_DIR = '../Image de cellule'
+# Chemins du dossier contenant les images de cellules
+TRAIN_DIR = 'C-NMC_Leukemia/training_data' 
+TEST_DIR = 'C-NMC_Leukemia/testing_data' 
+VAL_DIR = 'C-NMC_Leukemia/validation_data' 
 
 def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
     """
