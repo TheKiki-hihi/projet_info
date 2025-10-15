@@ -27,14 +27,10 @@ def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
     all_labels = []
     all_sets = []
 
-    # Mapping des dossiers aux ensembles
-    fold_mapping = {
-        'fold_0': 'train',
-        'fold_1': 'validation',
-        'fold_2': 'test'
-    }
-
-    print(f"-> Traitement du dossier racine : {root_dir}")
+    # print(f"-> Traitement du dossier racine : {root_dir}")
+    ######################################################################
+    #                         PARTIE TRAINING                            #
+    ######################################################################
 
     if os.path.isdir(root_dir):
         # Parcourir les dossiers fold_0, fold_1, fold_2
