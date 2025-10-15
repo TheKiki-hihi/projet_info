@@ -47,11 +47,15 @@ def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
                             all_filepaths.append(os.path.join(root, file_name))
                             all_labels.append(labels_name)
                             all_sets.append('train')
-
+      
     ######################################################################
     #                         PARTIE TESTING                             #
     ######################################################################
-
+if os.path.isdir(TEST_DIR):
+       for file_name in os.listdir(TEST_DIR):
+           all_filepaths.append(os.path.join(TEST_DIR, file_name))  #
+           all_labels.append('unknown') #unknow car on sait pas si hem ou all
+           all_sets.append('test') 
     ######################################################################
     #                        PARTIE VALIDATION                           #
     ######################################################################
