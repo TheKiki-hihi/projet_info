@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import os
 import pandas as pd
-import os
+from typing import Union
 
 # --- PARAMÈTRES ET CHEMINS D'ACCÈS ---
 
@@ -11,7 +11,7 @@ TRAIN_DIR = 'C-NMC_Leukemia/training_data'
 TEST_DIR = 'C-NMC_Leukemia/testing_data' 
 VAL_DIR = 'C-NMC_Leukemia/validation_data' 
 
-def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
+def creer_dataframe_depuis_dataset() -> pd.DataFrame:
     """
     Parcourt les différents dossiers training, testing, validation 
     pour créer une DataFrame contenant les chemins de fichiers et leurs étiquettes.
@@ -33,29 +33,32 @@ def creer_dataframe_depuis_dataset(root_dir: str) -> pd.DataFrame:
     #                         PARTIE TRAINING                            #
     ######################################################################
 
-    if os.path.isdir(train_dir):
-        # Parcourir les dossiers de train_dir
-        for dirs, files in os.walk(train_dir):
-            for root, dirs, files in os.walk(train_dir):
-            base = os.path.basename(root).casefold() # prend la fin du chemin et le mets comme nom de dossier pour creer classe et convertit en minuscule
+    if os.path.isdir(TRAIN_DIR):
+        for root, dirs, files in os.walk(TRAIN_DIR):
+            base = os.path.basename(root).casefold()
             if base == 'hem':
                 labels_name = 'hem'
-            elif base == 'all' :
+            elif base == 'all':
                 labels_name = 'all'
-                    for file_name in os.listdir(root):
-                        if file_name.endswith(('.jpg', '.jpeg', '.png', '.bmp')):
-                            all_filepaths.append(os.path.join(root, file_name))
-                            all_labels.append(labels_name)
-                            all_sets.append('train')
+            else:
+                continue  # Ignorer les autres dossiers
+            for file_name in files:
+                if file_name.endswith(('.jpg', '.jpeg', '.png', '.bmp')):
+                    all_filepaths.append(os.path.join(root, file_name))
+                    all_labels.append(labels_name)
+                    all_sets.append('train')
       
     ######################################################################
     #                         PARTIE TESTING                             #
     ######################################################################
-if os.path.isdir(TEST_DIR):
-       for file_name in os.listdir(TEST_DIR):
-           all_filepaths.append(os.path.join(TEST_DIR, file_name))  #
-           all_labels.append('unknown') #unknow car on sait pas si hem ou all
-           all_sets.append('test') 
+
+    test_images_dir = os.path.join(TEST_DIR, 'C-NMC_test_final_phase_data')
+    if os.path.isdir(test_images_dir):
+        for file_name in os.listdir(test_images_dir):
+            if file_name.endswith(('.jpg', '.jpeg', '.png', '.bmp')):
+                all_filepaths.append(os.path.join(test_images_dir, file_name))
+                all_labels.append('unknown')  # unknown car on sait pas si hem ou all
+                all_sets.append('test') 
     ######################################################################
     #                        PARTIE VALIDATION                           #
     ######################################################################
@@ -104,7 +107,7 @@ if os.path.isdir(TEST_DIR):
     return final_df
 
 
-def charger_et_normaliser_image(chemin_image: str, taille: tuple) -> np.ndarray | None:
+def charger_et_normaliser_image(chemin_image: str, taille: tuple) -> Union[np.ndarray, None]:
     """
     Charge une image, la redimensionne, la convertit en RGB, et la normalise
     pour que les valeurs de pixels soient comprises entre 0.0 et 1.0 (float32).
@@ -129,11 +132,63 @@ def charger_et_normaliser_image(chemin_image: str, taille: tuple) -> np.ndarray 
     
     return image_normalisee # Forme (224, 224, 3), valeurs entre [0.0, 1.0]
 
-def charger_et_normaliser_image(chemin_image: str, taille: tuple) -> np.ndarray | None:
-    """
-    Charge une image, la redimensionne, la convertit en RGB, et la normalise
-    pour que les valeurs de pixels soient comprises entre 0.0 et 1.0 (float32).
-    """
-    
+# --- PARAMÈTRES GLOBAUX (à ajuster si nécessaire) ---
+# La taille que votre modèle attend (comme 224x224 dans votre code Jupyter)
+IMAGE_TAILLE = (224, 224)
 
+# --- EXÉCUTION ---
+# Exemple d'appel pour créer la DataFrame
+dataset_df = creer_dataframe_depuis_dataset()
+
+# Dossier pour les données traitées
+processed_dir = 'processed_data'
+
+# Si vous voulez l'utiliser immédiatement pour le prétraitement :
+if not dataset_df.empty:
+    nb_images_a_traiter = len(dataset_df)  # Traiter toutes les images
+    for i in range(nb_images_a_traiter):
+        image_a_traiter = dataset_df['filepaths'].iloc[i]
+        set_name = dataset_df['set'].iloc[i]
+        label_name = dataset_df['labels'].iloc[i]
+        
+        print(f"\n--- Traitement de l'image {i+1}/{nb_images_a_traiter} : {image_a_traiter} ---")
+        tableau_numpy = charger_et_normaliser_image(image_a_traiter, IMAGE_TAILLE)
+        
+        if tableau_numpy is not None:
+            # Créer le dossier pour cette classe
+            class_dir = os.path.join(processed_dir, set_name, label_name)
+            os.makedirs(class_dir, exist_ok=True)
+            
+            # Affiche le type et la forme du résultat
+            print("Informations sur le résultat :")
+            print(f"Type de données : {tableau_numpy.dtype}")
+            print(f"Forme du tableau : {tableau_numpy.shape}")
+            print("Contenu (premières valeurs du premier pixel) :")
+            print(tableau_numpy[0, 0, :])  # Affiche les valeurs du premier pixel
+            
+            # Pour la première image, afficher TOUS les pixels (sauvegardé dans un fichier texte dans processed_dir)
+            if i == 0:
+                print("\nMatrice complète de l'image (TOUS les pixels sauvegardés dans un fichier texte) :")
+                output_txt_file = os.path.join(processed_dir, 'matrice_image_1_complete.txt')
+                np.savetxt(output_txt_file, tableau_numpy.reshape(-1, 3), fmt='%.6f')  # Sauvegarder en format texte
+                print(f"Matrice complète sauvegardée dans : {output_txt_file}")
+                print("Vous pouvez ouvrir ce fichier pour voir tous les pixels.")
+            # Pour les autres images, pas d'affichage de la matrice pour éviter la surcharge
+            
+            # Sauvegarder la matrice complète dans le dossier de classe
+            output_file = os.path.join(class_dir, f'matrice_image_{i+1}.npy')
+            np.save(output_file, tableau_numpy)
+            print(f"Matrice complète sauvegardée dans le fichier : {output_file}")
+            print("Vous pouvez la charger plus tard avec : np.load('{output_file}')")
+            
+            # Copier l'image originale non traitée dans le même dossier
+            import shutil
+            _, ext = os.path.splitext(image_a_traiter)
+            original_output_file = os.path.join(class_dir, f'image_originale_{i+1}{ext}')
+            shutil.copy(image_a_traiter, original_output_file)
+            print(f"Image originale copiée dans : {original_output_file}")
+        else:
+            print("Erreur lors du traitement de l'image.")
+else:
+    print("Aucune image trouvée dans le dataset.")
 
