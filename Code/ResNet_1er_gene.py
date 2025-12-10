@@ -13,10 +13,10 @@ import os
 # ============================================================================
 # CONFIGURATION DU PROGRAMME
 # ============================================================================
-# Nombre d'images à traiter par lot
+# Nombre d'images à traiter par lot ( en fonction de la puissance de l'ordinateur )
 BATCH_SIZE = 32
 
-# Nombre de passages complets sur l'ensemble des données d'entraînement
+# Nombre de passages complets sur l'ensemble des données d'entraînement (plus de Epoch -> moins d'erreur: 20 epochs -> 0,3% d'erreur)
 EPOCHS = 20
 
 # Vitesse d'apprentissage du modèle (plus petit = apprentissage plus lent mais stable)
