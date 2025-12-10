@@ -1,147 +1,148 @@
-# Programme d'entraînement ResNet50 pour classification d'images de cellules
+import os  # Pour la gestion des fichiers et dossiers
+import numpy as np  # Pour manipuler les tableaux d'images
+import torch  # Framework principal pour le deep learning
+import torch.nn as nn  # Pour les couches de réseaux de neurones
+import torch.optim as optim  # Pour les optimisateurs
+from torch.utils.data import Dataset, DataLoader  # Pour la gestion des données
+from torchvision import models, transforms  # Pour les modèles pré-entraînés et les transformations
+from sklearn.model_selection import train_test_split  # Pour séparer les données en train/val
 
-# ============================================================================
-# IMPORTS
-# ============================================================================
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader, ImageFolder
-from torchvision import transforms, models
-import os
+# =========================
+# 1. Définition du Dataset personnalisé
+# =========================
+class CellDataset(Dataset):
+    """
+    Dataset personnalisé pour charger les images de cellules et leurs labels.
+    Les images sont chargées depuis des fichiers .npy et transformées pour le modèle.
+    """
+    def __init__(self, image_paths, labels, transform=None):
+        self.image_paths = image_paths  # Liste des chemins vers les images
+        self.labels = labels  # Liste des labels (0 = sain, 1 = malade)
+        self.transform = transform  # Transformations à appliquer aux images
 
-# ============================================================================
-# CONFIGURATION DU PROGRAMME
-# ============================================================================
-# Nombre d'images à traiter par lot ( en fonction de la puissance de l'ordinateur )
-BATCH_SIZE = 32
+    def __len__(self):
+        return len(self.image_paths)
 
-# Nombre de passages complets sur l'ensemble des données d'entraînement (plus de Epoch -> moins d'erreur: 20 epochs -> 0,3% d'erreur)
-EPOCHS = 20
+    def __getitem__(self, idx):
+        # Chargement de l'image au format numpy
+        img = np.load(self.image_paths[idx])
+        img = img.astype(np.float32)
+        # Si l'image est en niveaux de gris (2D), on la convertit en 3 canaux pour ResNet
+        if img.ndim == 2:
+            img = np.stack([img]*3, axis=-1)
+        # Application des transformations (normalisation, conversion en tensor)
+        if self.transform:
+            img = self.transform(img)
+        label = self.labels[idx]
+        return img, label
 
-# Vitesse d'apprentissage du modèle (plus petit = apprentissage plus lent mais stable)
-LEARNING_RATE = 0.001
+# =========================
+# 2. Chargement des données et des labels
+# =========================
+image_dir = '../processed_data/testing_data/'  # Dossier contenant les images .npy
+label_file = '../validation_data/C-NMC_test_prelim_phase_data_labels.csv'  # Fichier CSV des labels
 
-# Choix du processeur (GPU si disponible, sinon CPU)
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Récupère tous les chemins des fichiers .npy (images)
+image_paths = [os.path.join(image_dir, fname) for fname in os.listdir(image_dir) if fname.endswith('.npy')]
 
-# ============================================================================
-# CHEMIN VERS LES DONNÉES
-# ============================================================================
-# Chemin du dossier contenant les images d'entraînement
-# Les images doivent être organisées en sous-dossiers par classe
-DATA_PATH = r"c:\Users\Etudiant\Desktop\Licence Science et Technologique\L3\S1\Projet Info\training"
+# Chargement des labels depuis le CSV
+import pandas as pd
+labels_df = pd.read_csv(label_file)  # Le CSV doit contenir les colonnes 'id' et 'label'
+labels_dict = dict(zip(labels_df['id'], labels_df['label']))  # Dictionnaire id -> label
 
-# ============================================================================
-# PRÉPARATION DES DONNÉES
-# ============================================================================
-# Définition des transformations à appliquer aux images
+# Création de la liste des labels pour chaque image
+labels = []
+for path in image_paths:
+    # Récupère l'id à partir du nom de fichier (ex: '123.npy' -> 123)
+    img_id = os.path.splitext(os.path.basename(path))[0]
+    labels.append(labels_dict.get(int(img_id), 0))  # Si l'id n'est pas trouvé, label=0 (sain)
+
+# =========================
+# 3. Préparation des DataLoader
+# =========================
+train_paths, val_paths, train_labels, val_labels = train_test_split(
+    image_paths, labels, test_size=0.2, random_state=42)  # Séparation 80% train, 20% val
+
+# Transformations pour les images (conversion en tensor et normalisation)
 transform = transforms.Compose([
-    # Redimensionner toutes les images à 224x224 (taille attendue par ResNet)
-    transforms.Resize((224, 224)),
-    
-    # Convertir les images PIL en tenseurs PyTorch
-    transforms.ToTensor(),
-    
-    # Normaliser avec les statistiques ImageNet (pour meilleure performance)
-    transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                         std=[0.229, 0.224, 0.225])
+    transforms.ToTensor(),  # Conversion numpy -> tensor
+    transforms.Normalize([0.5]*3, [0.5]*3)  # Normalisation des 3 canaux
 ])
 
-# Charger les images depuis le dossier
-# ImageFolder organise automatiquement les données par dossiers (1 dossier = 1 classe)
-train_dataset = ImageFolder(DATA_PATH, transform=transform)
+# Création des datasets pour l'entraînement et la validation
+train_dataset = CellDataset(train_paths, train_labels, transform)
+val_dataset = CellDataset(val_paths, val_labels, transform)
 
-# Créer un chargeur de données qui distribue les images par lots
-# shuffle=True : mélanger les données pour un meilleur apprentissage
-train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+# Création des DataLoaders pour charger les données par batch
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 
-# ============================================================================
-# CRÉATION DU MODÈLE
-# ============================================================================
-# Charger ResNet50 pré-entraîné sur ImageNet
-# pretrained=True : utiliser les poids initiaux entraînés sur ImageNet
-model = models.resnet50(pretrained=True)
+# =========================
+# 4. Définition du modèle ResNet
+# =========================
+model = models.resnet18(pretrained=True)  # Charge un ResNet18 pré-entraîné sur ImageNet
+# Remplace la dernière couche pour avoir 2 sorties (sain/malade)
+model.fc = nn.Linear(model.fc.in_features, 2)
 
-# Déterminer le nombre de classes à partir des données
-# = nombre de dossiers dans le répertoire training
-num_classes = len(train_dataset.classes)
+# =========================
+# 5. Boucle d'entraînement
+# =========================
 
-# Remplacer la dernière couche pour s'adapter à notre nombre de classes
-# ResNet50 a par défaut 1000 classes (ImageNet)
-# On la remplace pour notre nombre de classes spécifique
-model.fc = nn.Linear(model.fc.in_features, num_classes)
+# Détection du device (GPU si dispo, sinon CPU)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = model.to(device)
 
-# Déplacer le modèle sur le GPU ou CPU
-model = model.to(DEVICE)
+# Définition de la fonction de perte et de l'optimiseur
+criterion = nn.CrossEntropyLoss()  # Pour la classification multi-classes
+optimizer = optim.Adam(model.parameters(), lr=1e-4)  # Optimiseur Adam
 
-# ============================================================================
-# CONFIGURATION DE L'OPTIMISEUR ET DE LA PERTE
-# ============================================================================
-# CrossEntropyLoss : fonction de perte pour la classification multi-classe
-criterion = nn.CrossEntropyLoss()
+num_epochs = 20  # Nombre d'époques d'entraînement
+for epoch in range(num_epochs):
+    model.train()  # Mode entraînement
+    running_loss = 0.0
+    for imgs, labels in train_loader:
+        imgs, labels = imgs.to(device), labels.to(device)  # Passage sur le device
+        optimizer.zero_grad()  # Remise à zéro des gradients
+        outputs = model(imgs)  # Prédiction du modèle
+        loss = criterion(outputs, labels)  # Calcul de la perte
+        loss.backward()  # Rétropropagation
+        optimizer.step()  # Mise à jour des poids
+        running_loss += loss.item() * imgs.size(0)  # Accumulation de la perte
+    epoch_loss = running_loss / len(train_loader.dataset)
+    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}')
 
-# Adam : optimiseur qui adapte le taux d'apprentissage automatiquement
-# optimizer.parameters() : ajuste tous les poids du modèle
-optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    # Évaluation sur le jeu de validation
+    model.eval()  # Mode évaluation
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for imgs, labels in val_loader:
+            imgs, labels = imgs.to(device), labels.to(device)
+            outputs = model(imgs)
+            _, predicted = torch.max(outputs, 1)  # Classe prédite
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()  # Nombre de bonnes prédictions
+    val_acc = correct / total
+    print(f'Validation Accuracy: {val_acc:.4f}')
 
-# ============================================================================
-# AFFICHAGE DES INFORMATIONS
-# ============================================================================
-print(f"Nombre de classes détectées: {num_classes}")
-print(f"Classes trouvées: {train_dataset.classes}")
-print(f"Nombre d'images d'entraînement: {len(train_dataset)}")
-print(f"Appareil utilisé: {DEVICE}")
-print(f"Début de l'entraînement...\n")
+# =========================
+# 6. Sauvegarde du modèle
+# =========================
 
-# ============================================================================
-# BOUCLE D'ENTRAÎNEMENT
-# ============================================================================
-# Parcourir le nombre d'epochs défini
-for epoch in range(EPOCHS):
-    # Mettre le modèle en mode entraînement
-    # (certaines couches comme Dropout et BatchNorm se comportent différemment)
-    model.train()
-    
-    # Variable pour accumuler la perte totale de l'epoch
-    total_loss = 0
-    
-    # Parcourir tous les lots de données
-    for batch_idx, (images, labels) in enumerate(train_loader):
-        # Déplacer les images et labels sur le GPU ou CPU
-        images = images.to(DEVICE)
-        labels = labels.to(DEVICE)
-        
-        # ====== FORWARD PASS ======
-        # Passer les images dans le modèle pour obtenir les prédictions
-        outputs = model(images)
-        
-        # Calculer la perte (erreur entre prédictions et labels réels)
-        loss = criterion(outputs, labels)
-        
-        # ====== BACKWARD PASS ======
-        # Remettre les gradients à zéro (éviter l'accumulation)
-        optimizer.zero_grad()
-        
-        # Calculer les gradients de la perte par rapport aux poids
-        loss.backward()
-        
-        # Mettre à jour les poids du modèle
-        optimizer.step()
-        
-        # Ajouter la perte du lot à la perte totale
-        total_loss += loss.item()
-    
-    # Calculer la perte moyenne pour cet epoch
-    avg_loss = total_loss / len(train_loader)
-    
-    # Afficher la progression
-    print(f"Epoch {epoch+1}/{EPOCHS} - Loss moyenne: {avg_loss:.4f}")
+# Sauvegarde des poids du modèle entraîné
+torch.save(model.state_dict(), 'resnet_cellule.pth')
+print('Modèle sauvegardé sous resnet_cellule.pth')
 
-# ============================================================================
-# SAUVEGARDE DU MODÈLE
-# ============================================================================
-# Sauvegarder les poids du modèle entraîné pour une utilisation future
-model_path = "resnet50_cellules.pth"
-torch.save(model.state_dict(), model_path)
-print(f"\n✓ Modèle sauvegardé avec succès dans: {model_path}")
+# =========================
+# Ce script charge les images, prépare les labels, entraîne un ResNet18 et sauvegarde le modèle.
+# Adapte les chemins et paramètres selon tes besoins.
+#
+# Structure du script :
+# 1. Définition du Dataset personnalisé
+# 2. Chargement des données et des labels
+# 3. Préparation des DataLoader
+# 4. Définition du modèle ResNet
+# 5. Boucle d'entraînement et validation
+# 6. Sauvegarde du modèle
+#
+# Pour toute question ou adaptation, demande-moi !
