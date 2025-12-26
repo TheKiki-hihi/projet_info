@@ -1,0 +1,106 @@
+======================================================================
+   PROGRAMME DE TEST - CLASSIFICATION DES CELLULES AVEC RESNET
+======================================================================
+
+📅 Date d'exécution: 26/12/2025 16:53:45
+
+----------------------------------------------------------------------
+📂 ÉTAPE 1/5 : Vérification des fichiers
+----------------------------------------------------------------------
+
+  → Vérification du modèle: /Users/kilperic/Desktop/projet_info/IA/resnet_cellule.pth
+    ✅ Modèle trouvé
+
+  → Vérification du dossier d'images: /Users/kilperic/Desktop/projet_info/processed_data/testing_data
+    ✅ Dossier trouvé
+
+----------------------------------------------------------------------
+🖼️  ÉTAPE 2/5 : Chargement de la liste des images
+----------------------------------------------------------------------
+
+  → Nombre d'images trouvées: 2586
+    ✅ 2586 images prêtes à être analysées
+
+----------------------------------------------------------------------
+🧠 ÉTAPE 3/5 : Chargement du modèle ResNet
+----------------------------------------------------------------------
+
+  → Device utilisé: cpu
+  → Création de l'architecture ResNet18...
+/Users/kilperic/Desktop/projet_info/.venv/lib/python3.9/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/Users/kilperic/Desktop/projet_info/.venv/lib/python3.9/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=None`.
+  warnings.warn(msg)
+  → Chargement des poids du modèle...
+    ✅ Modèle chargé et prêt pour les prédictions
+
+----------------------------------------------------------------------
+🔬 ÉTAPE 4/5 : Analyse des cellules
+----------------------------------------------------------------------
+
+  Analyse de 2586 images en cours...
+
+    📊 Progression: 100/2586 images (3.9%)
+    📊 Progression: 200/2586 images (7.7%)
+    📊 Progression: 300/2586 images (11.6%)
+    📊 Progression: 400/2586 images (15.5%)
+    📊 Progression: 500/2586 images (19.3%)
+    📊 Progression: 600/2586 images (23.2%)
+    📊 Progression: 700/2586 images (27.1%)
+    📊 Progression: 800/2586 images (30.9%)
+    📊 Progression: 900/2586 images (34.8%)
+    📊 Progression: 1000/2586 images (38.7%)
+    📊 Progression: 1100/2586 images (42.5%)
+    📊 Progression: 1200/2586 images (46.4%)
+    📊 Progression: 1300/2586 images (50.3%)
+    📊 Progression: 1400/2586 images (54.1%)
+    📊 Progression: 1500/2586 images (58.0%)
+    📊 Progression: 1600/2586 images (61.9%)
+    📊 Progression: 1700/2586 images (65.7%)
+    📊 Progression: 1800/2586 images (69.6%)
+    📊 Progression: 1900/2586 images (73.5%)
+    📊 Progression: 2000/2586 images (77.3%)
+    📊 Progression: 2100/2586 images (81.2%)
+    📊 Progression: 2200/2586 images (85.1%)
+    📊 Progression: 2300/2586 images (88.9%)
+    📊 Progression: 2400/2586 images (92.8%)
+    📊 Progression: 2500/2586 images (96.7%)
+    📊 Progression: 2586/2586 images (100.0%)
+
+    ✅ Analyse terminée!
+
+----------------------------------------------------------------------
+💾 ÉTAPE 5/5 : Sauvegarde des résultats
+----------------------------------------------------------------------
+
+  → Résultats sauvegardés dans: /Users/kilperic/Desktop/projet_info/IA/resultats_test.csv
+
+======================================================================
+   📋 RÉSUMÉ DES RÉSULTATS
+======================================================================
+
+  📊 Statistiques globales:
+     • Nombre total d'images analysées: 2586
+     • Cellules prédites SAINES:        1212 (46.9%)
+     • Cellules prédites MALADES:       1374 (53.1%)
+
+  🎯 Confiance moyenne des prédictions: 94.25%
+
+  📝 Aperçu des 10 premiers résultats:
+  --------------------------------------------------
+  Image_ID        État       Confiance 
+  --------------------------------------------------
+  1               Malade     62.74%
+  2               Malade     99.58%
+  3               Malade     99.98%
+  4               Sain       97.83%
+  5               Sain       99.83%
+  6               Malade     95.10%
+  7               Sain       99.88%
+  8               Sain       91.55%
+  9               Sain       98.76%
+  10              Malade     66.87%
+
+======================================================================
+   ✅ PROGRAMME TERMINÉ AVEC SUCCÈS
+======================================================================
