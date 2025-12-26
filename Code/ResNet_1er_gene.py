@@ -1,24 +1,31 @@
 import os  # Pour la gestion des fichiers et dossiers
 import numpy as np  # Pour manipuler les tableaux d'images
+import pandas as pd  # Pour lire les fichiers CSV
 import torch  # Framework principal pour le deep learning
 import torch.nn as nn  # Pour les couches de réseaux de neurones
 import torch.optim as optim  # Pour les optimisateurs
 from torch.utils.data import Dataset, DataLoader  # Pour la gestion des données
 from torchvision import models, transforms  # Pour les modèles pré-entraînés et les transformations
 from sklearn.model_selection import train_test_split  # Pour séparer les données en train/val
+import glob  # Pour rechercher des fichiers avec des patterns
+
+print("=" * 60)
+print("DÉMARRAGE DU PROGRAMME D'ENTRAÎNEMENT RESNET")
+print("=" * 60)
 
 # =========================
 # 1. Définition du Dataset personnalisé
 # =========================
+print("\n[1/6] Définition du Dataset personnalisé...")
 class CellDataset(Dataset):
     """
     Dataset personnalisé pour charger les images de cellules et leurs labels.
     Les images sont chargées depuis des fichiers .npy et transformées pour le modèle.
     """
     def __init__(self, image_paths, labels, transform=None):
-        self.image_paths = image_paths  # Liste des chemins vers les images
-        self.labels = labels  # Liste des labels (0 = sain, 1 = malade)
-        self.transform = transform  # Transformations à appliquer aux images
+        self.image_paths = image_paths
+        self.labels = labels
+        self.transform = transform
 
     def __len__(self):
         return len(self.image_paths)
@@ -27,122 +34,172 @@ class CellDataset(Dataset):
         # Chargement de l'image au format numpy
         img = np.load(self.image_paths[idx])
         img = img.astype(np.float32)
+        
         # Si l'image est en niveaux de gris (2D), on la convertit en 3 canaux pour ResNet
         if img.ndim == 2:
             img = np.stack([img]*3, axis=-1)
-        # Application des transformations (normalisation, conversion en tensor)
-        if self.transform:
-            img = self.transform(img)
+        
+        # Normalisation manuelle (0-1) si l'image n'est pas déjà normalisée
+        if img.max() > 1.0:
+            img = img / 255.0
+        
+        # Conversion en tensor : copie explicite pour éviter les problèmes
+        img = img.transpose(2, 0, 1).copy()
+        img = torch.tensor(img, dtype=torch.float32)
+        
+        # Normalisation
+        img = (img - 0.5) / 0.5
+        
         label = self.labels[idx]
         return img, label
+
+print("✓ Dataset personnalisé défini")
 
 # =========================
 # 2. Chargement des données et des labels
 # =========================
-image_dir = '../processed_data/testing_data/'  # Dossier contenant les images .npy
-label_file = '../validation_data/C-NMC_test_prelim_phase_data_labels.csv'  # Fichier CSV des labels
+print("\n[2/6] Chargement des données et des labels...")
+image_dir = '/Users/kilperic/Desktop/projet_info/processed_data/training_data'
+label_file = '/Users/kilperic/Desktop/projet_info/C-NMC_Leukemia/validation_data/C-NMC_test_prelim_phase_data_labels.csv'
 
-# Récupère tous les chemins des fichiers .npy (images)
-image_paths = [os.path.join(image_dir, fname) for fname in os.listdir(image_dir) if fname.endswith('.npy')]
+print(f"  → Vérification du dossier: {image_dir}")
+if not os.path.exists(image_dir):
+    raise FileNotFoundError(f"Le dossier {image_dir} n'existe pas.")
 
-# Chargement des labels depuis le CSV
-import pandas as pd
-labels_df = pd.read_csv(label_file)  # Le CSV doit contenir les colonnes 'id' et 'label'
-labels_dict = dict(zip(labels_df['id'], labels_df['label']))  # Dictionnaire id -> label
+print(f"  → Recherche des fichiers .npy...")
+image_paths = glob.glob(os.path.join(image_dir, '**', '*.npy'), recursive=True)
 
-# Création de la liste des labels pour chaque image
+if len(image_paths) == 0:
+    raise ValueError(f"Aucun fichier .npy trouvé dans {image_dir}")
+
+print(f"  ✓ Trouvé {len(image_paths)} images")
+
+print(f"  → Chargement des labels depuis {label_file}")
+labels_df = pd.read_csv(label_file)
+labels_dict = dict(zip(labels_df['Patient_ID'], labels_df['labels']))
+print(f"  ✓ {len(labels_dict)} labels chargés depuis le CSV")
+
+print(f"  → Attribution des labels aux images...")
 labels = []
 for path in image_paths:
-    # Récupère l'id à partir du nom de fichier (ex: '123.npy' -> 123)
     img_id = os.path.splitext(os.path.basename(path))[0]
-    labels.append(labels_dict.get(int(img_id), 0))  # Si l'id n'est pas trouvé, label=0 (sain)
+    
+    if img_id in labels_dict:
+        labels.append(labels_dict[img_id])
+    else:
+        parent_folder = os.path.basename(os.path.dirname(path))
+        if parent_folder == 'hem':
+            labels.append(1)
+        elif parent_folder == 'all':
+            labels.append(0)
+        else:
+            labels.append(0)
+
+print(f"  ✓ Distribution des labels - Sains: {labels.count(0)}, Malades: {labels.count(1)}")
 
 # =========================
 # 3. Préparation des DataLoader
 # =========================
+print("\n[3/6] Préparation des DataLoaders...")
 train_paths, val_paths, train_labels, val_labels = train_test_split(
-    image_paths, labels, test_size=0.2, random_state=42)  # Séparation 80% train, 20% val
+    image_paths, labels, test_size=0.2, random_state=42)
 
-# Transformations pour les images (conversion en tensor et normalisation)
-transform = transforms.Compose([
-    transforms.ToTensor(),  # Conversion numpy -> tensor
-    transforms.Normalize([0.5]*3, [0.5]*3)  # Normalisation des 3 canaux
-])
+print(f"  → Dataset d'entraînement: {len(train_paths)} images")
+print(f"  → Dataset de validation: {len(val_paths)} images")
 
-# Création des datasets pour l'entraînement et la validation
-train_dataset = CellDataset(train_paths, train_labels, transform)
-val_dataset = CellDataset(val_paths, val_labels, transform)
+train_dataset = CellDataset(train_paths, train_labels, transform=None)
+val_dataset = CellDataset(val_paths, val_labels, transform=None)
 
-# Création des DataLoaders pour charger les données par batch
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+print(f"  ✓ DataLoaders créés (batch_size=32)")
 
 # =========================
 # 4. Définition du modèle ResNet
 # =========================
-model = models.resnet18(pretrained=True)  # Charge un ResNet18 pré-entraîné sur ImageNet
-# Remplace la dernière couche pour avoir 2 sorties (sain/malade)
+print("\n[4/6] Définition du modèle ResNet18...")
+model = models.resnet18(pretrained=True)
 model.fc = nn.Linear(model.fc.in_features, 2)
+print(f"  ✓ ResNet18 chargé et modifié (sortie: 2 classes)")
 
 # =========================
 # 5. Boucle d'entraînement
 # =========================
-
-# Détection du device (GPU si dispo, sinon CPU)
+print("\n[5/6] Démarrage de l'entraînement...")
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f"  → Utilisation du device: {device}")
 model = model.to(device)
 
-# Définition de la fonction de perte et de l'optimiseur
-criterion = nn.CrossEntropyLoss()  # Pour la classification multi-classes
-optimizer = optim.Adam(model.parameters(), lr=1e-4)  # Optimiseur Adam
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=1e-4)
+print(f"  → Fonction de perte: CrossEntropyLoss")
+print(f"  → Optimiseur: Adam (lr=1e-4)")
 
-num_epochs = 20  # Nombre d'époques d'entraînement
+num_epochs = 20
+print(f"\n  Entraînement sur {num_epochs} époques:")
+print("-" * 60)
+
 for epoch in range(num_epochs):
-    model.train()  # Mode entraînement
+    # Entraînement
+    model.train()
     running_loss = 0.0
-    for imgs, labels in train_loader:
-        imgs, labels = imgs.to(device), labels.to(device)  # Passage sur le device
-        optimizer.zero_grad()  # Remise à zéro des gradients
-        outputs = model(imgs)  # Prédiction du modèle
-        loss = criterion(outputs, labels)  # Calcul de la perte
-        loss.backward()  # Rétropropagation
-        optimizer.step()  # Mise à jour des poids
-        running_loss += loss.item() * imgs.size(0)  # Accumulation de la perte
+    correct_train = 0
+    total_train = 0
+    
+    print(f"\n  Époque {epoch+1}/{num_epochs}")
+    print(f"    Phase d'entraînement...", end=" ")
+    
+    for batch_idx, (imgs, labels) in enumerate(train_loader):
+        imgs, labels = imgs.to(device), labels.to(device)
+        optimizer.zero_grad()
+        outputs = model(imgs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+        running_loss += loss.item() * imgs.size(0)
+        
+        # Calcul de l'accuracy
+        _, predicted = torch.max(outputs, 1)
+        total_train += labels.size(0)
+        correct_train += (predicted == labels).sum().item()
+    
     epoch_loss = running_loss / len(train_loader.dataset)
-    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}')
+    train_acc = correct_train / total_train
+    print(f"Loss: {epoch_loss:.4f}, Acc: {train_acc:.4f}")
 
-    # Évaluation sur le jeu de validation
-    model.eval()  # Mode évaluation
+    # Validation
+    model.eval()
     correct = 0
     total = 0
+    val_loss = 0.0
+    
+    print(f"    Phase de validation...", end=" ")
+    
     with torch.no_grad():
         for imgs, labels in val_loader:
             imgs, labels = imgs.to(device), labels.to(device)
             outputs = model(imgs)
-            _, predicted = torch.max(outputs, 1)  # Classe prédite
+            loss = criterion(outputs, labels)
+            val_loss += loss.item() * imgs.size(0)
+            
+            _, predicted = torch.max(outputs, 1)
             total += labels.size(0)
-            correct += (predicted == labels).sum().item()  # Nombre de bonnes prédictions
+            correct += (predicted == labels).sum().item()
+    
     val_acc = correct / total
-    print(f'Validation Accuracy: {val_acc:.4f}')
+    val_loss = val_loss / len(val_loader.dataset)
+    print(f"Loss: {val_loss:.4f}, Acc: {val_acc:.4f}")
+
+print("\n" + "-" * 60)
+print("✓ Entraînement terminé")
 
 # =========================
 # 6. Sauvegarde du modèle
 # =========================
-
-# Sauvegarde des poids du modèle entraîné
+print("\n[6/6] Sauvegarde du modèle...")
 torch.save(model.state_dict(), 'resnet_cellule.pth')
-print('Modèle sauvegardé sous resnet_cellule.pth')
+print("  ✓ Modèle sauvegardé sous 'resnet_cellule.pth'")
 
-# =========================
-# Ce script charge les images, prépare les labels, entraîne un ResNet18 et sauvegarde le modèle.
-# Adapte les chemins et paramètres selon tes besoins.
-#
-# Structure du script :
-# 1. Définition du Dataset personnalisé
-# 2. Chargement des données et des labels
-# 3. Préparation des DataLoader
-# 4. Définition du modèle ResNet
-# 5. Boucle d'entraînement et validation
-# 6. Sauvegarde du modèle
-#
-# Pour toute question ou adaptation, demande-moi !
+print("\n" + "=" * 60)
+print("PROGRAMME TERMINÉ AVEC SUCCÈS")
+print("=" * 60)
