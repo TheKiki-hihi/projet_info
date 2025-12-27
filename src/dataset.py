@@ -107,8 +107,8 @@ def preparer_donnees():
     ######################################################
     # CRÉATION DE LA DATAFRAME.  
     ######################################################
-    
-    if not chemins_images:
+
+    if not all_filepaths:
         print("Aucune image trouvée. Vérifiez les chemins.")
         return
 
