@@ -1,1 +1,1 @@
-
+def preparer_donnees()
