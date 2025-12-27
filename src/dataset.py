@@ -113,9 +113,9 @@ def preparer_donnees():
         return
 
     df = pd.DataFrame({
-        "chemin_image": chemins_images,
-        "label": labels,
-        "ensemble": ensembles
+        "chemin_image": all_filepaths,
+        "label": all_labels,
+        "ensemble": all_sets
     })
 
     print("\nRépartition des images par ensemble :")
@@ -141,14 +141,14 @@ def preparer_donnees():
         # Création du dossier de sortie
         dossier_sortie = os.path.join(
             PROCESSED_DIR,
-            row["all_sets"],
-            str(row["all_labels"])
+            row["ensemble"],
+            str(row["label"])
         )
         os.makedirs(dossier_sortie, exist_ok=True)
 
         # Nom du fichier de sortie (.npy)
         nom_image = os.path.splitext(
-            os.path.basename(row["all_filepaths"])
+            os.path.basename(row["chemin_image"])
         )[0]
         chemin_sortie = os.path.join(dossier_sortie, nom_image + ".npy")
 
