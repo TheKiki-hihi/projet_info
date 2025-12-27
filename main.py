@@ -1,4 +1,4 @@
-from src.preprocess import preparer_donnees
+from src.dataset import preparer_donnees
 from src.train import entrainer_modele
 from src.predict import lancer_predictions
 
