@@ -43,62 +43,66 @@ def preparer_donnees():
     """
 
     # Listes qui serviront à construire la DataFrame finale
-    chemins_images = []
-    labels = []
-    ensembles = []
+    all_filepaths = []
+    all_labels = []
+    all_sets = []
+    ######################################################################
+    #                         PARTIE TRAINING                            #
+    ######################################################################
 
-    # ----------------------------------------------------
-    # 1) PARCOURS DU JEU D'ENTRAÎNEMENT
-    # ----------------------------------------------------
-    # Les dossiers 'hem' et 'all' correspondent aux classes
     if os.path.isdir(TRAIN_DIR):
-        for root, _, files in os.walk(TRAIN_DIR):
-            nom_classe = os.path.basename(root).lower()
+        for root, dirs, files in os.walk(TRAIN_DIR):
+            base = os.path.basename(root).casefold()
+            if base == 'hem':
+                labels_name = 'hem'
+            elif base == 'all':
+                labels_name = 'all'
+            else:
+                continue  # Ignorer les autres dossiers
+            for file_name in files:
+                if file_name.endswith(('.jpg', '.jpeg', '.png', '.bmp')):
+                    all_filepaths.append(os.path.join(root, file_name))
+                    all_labels.append(labels_name)
+                    all_sets.append('train')
+      
+    ######################################################################
+    #                         PARTIE TESTING                             #
+    ######################################################################
 
-            # On ne garde que les dossiers de classes
-            if nom_classe not in ["hem", "all"]:
-                continue
-
-            for fichier in files:
-                if fichier.lower().endswith((".jpg", ".png", ".jpeg")):
-                    chemins_images.append(os.path.join(root, fichier))
-                    labels.append(nom_classe)
-                    ensembles.append("training")
-
-    # ----------------------------------------------------
-    # 2) PARCOURS DU JEU DE TEST
-    # ----------------------------------------------------
-    # Les images de test n'ont pas de labels connus
-    test_images_dir = os.path.join(TEST_DIR, "C-NMC_test_final_phase_data")
-
+    test_images_dir = os.path.join(TEST_DIR, 'C-NMC_test_final_phase_data')
     if os.path.isdir(test_images_dir):
-        for fichier in os.listdir(test_images_dir):
-            if fichier.lower().endswith((".jpg", ".png", ".jpeg")):
-                chemins_images.append(os.path.join(test_images_dir, fichier))
-                labels.append("unknown")
-                ensembles.append("testing")
-
-    # ----------------------------------------------------
-    # 3) PARCOURS DU JEU DE VALIDATION
-    # ----------------------------------------------------
-    # Les labels sont stockés dans un fichier CSV
-    val_images_dir = os.path.join(VAL_DIR, "C-NMC_test_prelim_phase_data")
-    val_labels_csv = os.path.join(
-        VAL_DIR, "C-NMC_test_prelim_phase_data_labels.csv"
-    )
-
+        for file_name in os.listdir(test_images_dir):
+            if file_name.endswith(('.jpg', '.jpeg', '.png', '.bmp')):
+                all_filepaths.append(os.path.join(test_images_dir, file_name))
+                all_labels.append('unknown')  # unknown car on sait pas si hem ou all
+                all_sets.append('test') 
+    ######################################################################
+    #                        PARTIE VALIDATION                           #
+    ######################################################################
+    # Traitement de la validation data
+    val_images_dir = os.path.join(VAL_DIR, 'C-NMC_test_prelim_phase_data')
+    val_labels_csv = os.path.join(VAL_DIR, 'C-NMC_test_prelim_phase_data_labels.csv')
+    
     if os.path.isdir(val_images_dir) and os.path.isfile(val_labels_csv):
-        df_labels = pd.read_csv(val_labels_csv)
-
-        for fichier in os.listdir(val_images_dir):
-            if fichier.lower().endswith((".jpg", ".png", ".jpeg")):
-                ligne = df_labels[df_labels["new_names"] == fichier]
-
-                # On vérifie que le label existe dans le CSV
-                if not ligne.empty:
-                    chemins_images.append(os.path.join(val_images_dir, fichier))
-                    labels.append(ligne["labels"].values[0])
-                    ensembles.append("validation")
+        print(f"  -> Traitement de la validation data")
+        # Lire le CSV des labels
+        labels_df = pd.read_csv(val_labels_csv)
+        # Mapper les labels : 0 -> 'hem', 1 -> 'all'
+        label_mapping = {0: 'hem', 1: 'all'}
+        labels_df['labels'] = labels_df['labels'].map(label_mapping)
+        
+        # Parcourir les images
+        for file_name in os.listdir(val_images_dir):
+            if file_name.endswith(('.jpg', '.jpeg', '.png', '.bmp')):
+                # Trouver le label correspondant via new_names
+                matching_row = labels_df[labels_df['new_names'] == file_name]
+                if not matching_row.empty:
+                    label = matching_row['labels'].values[0]
+                    all_filepaths.append(os.path.join(val_images_dir, file_name))
+                    all_labels.append(label)
+                    all_sets.append('validation')
+                else:
+                    print(f"Avertissement : Pas de label trouvé pour {file_name}")
 
     ######################################################
     # CRÉATION DE LA DATAFRAME.  
