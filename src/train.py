@@ -18,7 +18,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader, random_split
 
-from src.modele import creer_modele
+from src.model import creer_modele
 
 
 # ============================================================
@@ -31,8 +31,8 @@ PROCESSED_DIR = "processed_data"
 # Chemins attendus (créés par votre preprocess) :
 # processed_data/training/hem/*.npy
 # processed_data/training/all/*.npy
-TRAIN_HEM_DIR = os.path.join(PROCESSED_DIR, "training", "hem")
-TRAIN_ALL_DIR = os.path.join(PROCESSED_DIR, "training", "all")
+TRAIN_HEM_DIR = os.path.join(PROCESSED_DIR, "train", "hem")
+TRAIN_ALL_DIR = os.path.join(PROCESSED_DIR, "train", "all")
 
 # Sauvegarde du modèle entraîné
 MODEL_PATH = "resnet_cellule.pth"
