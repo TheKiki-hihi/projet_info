@@ -19,7 +19,7 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 
-from src.modele import charger_modele
+from src.model import charger_modele
 
 
 # ============================================================
