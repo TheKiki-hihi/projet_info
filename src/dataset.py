@@ -141,14 +141,14 @@ def preparer_donnees():
         # Création du dossier de sortie
         dossier_sortie = os.path.join(
             PROCESSED_DIR,
-            row["ensemble"],
-            str(row["label"])
+            row["all_sets"],
+            str(row["all_labels"])
         )
         os.makedirs(dossier_sortie, exist_ok=True)
 
         # Nom du fichier de sortie (.npy)
         nom_image = os.path.splitext(
-            os.path.basename(row["chemin_image"])
+            os.path.basename(row["all_filepaths"])
         )[0]
         chemin_sortie = os.path.join(dossier_sortie, nom_image + ".npy")
 
