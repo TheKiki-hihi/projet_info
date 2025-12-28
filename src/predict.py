@@ -31,7 +31,7 @@ PROCESSED_DIR = "processed_data"
 
 # Dossier test prétraité (créé par preprocess.py)
 # Dans notre preprocess, on a mis l'ensemble = "testing"
-TEST_DIR = os.path.join(PROCESSED_DIR, "testing")
+TEST_DIR = os.path.join(PROCESSED_DIR, "test")
 
 # Chemin du modèle entraîné (créé par train.py)
 MODEL_PATH = "resnet_cellule.pth"
