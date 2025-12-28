@@ -123,11 +123,12 @@ def lancer_predictions():
 
     with torch.no_grad():
         for i, path_npy in enumerate(fichiers_test, start=1):
-            # Charger l'image prétraitée (.npy) 
-            img = np.load(path_npy)  # shape attendue : (H, W, 3), valeurs entre 0 et 1
+            # Charger l'image prétraitée (.npy)
+            # shape attendue : (H, W, 3), valeurs entre 0 et 1
+            img = np.load(path_npy)  
 
             # Convertir en tenseur PyTorch 
-            # ResNet attend [B, C, H, W]
+            # ResNet attend : [batch, channels, height, width]
             x = torch.tensor(img, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0)
             x = x.to(device)
 
