@@ -89,4 +89,3 @@ def charger_modele(chemin_poids: str, nb_classes: int = 2, device: str = "cpu") 
     modele.eval()
 
     return modele
-
