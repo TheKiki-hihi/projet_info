@@ -58,10 +58,13 @@ def preparer_donnees():
     ######################################################################
     #                         PARTIE TRAINING                            #
     ######################################################################
-
+    
+    # Les labels sont directement donnés par le nom du dossier (hem / all)
     if os.path.isdir(TRAIN_DIR):
         for root, dirs, files in os.walk(TRAIN_DIR):
+            # On récupère le nom du dossier courant
             base = os.path.basename(root).casefold()
+            # Attribution du label en fonction du dossier
             if base == 'hem':
                 labels_name = 'hem'
             elif base == 'all':
