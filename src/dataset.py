@@ -1,3 +1,12 @@
+"""
+src/dataset.py
+Ce fichier permet la préparation des données du projet.
+Il permet de parcourir les dossiers du dataset d’origine (training, validation et test),
+de charger les images, d’appliquer un prétraitement (redimensionnement et normalisation),
+puis de sauvegarder les images prétraitées sous forme de fichiers NumPy (.npy).
+L’objectif est d’obtenir des données homogènes et directement exploitables
+pour l’entraînement et la prédiction du modèle de classification.
+"""
 import os
 import cv2
 import numpy as np
