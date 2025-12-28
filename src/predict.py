@@ -26,10 +26,10 @@ from src.model import charger_modele
 #                  PARAMÈTRES GLOBAUX                        #
 ##############################################################  
 
-# Dossier contenant les données prétraitées
+# Dossier contenant toutes les données déjà prétraitées
 PROCESSED_DIR = "processed_data"
 
-# Dossier test prétraité (créé par preprocess.py)
+# Dossier contenant uniquement les données de test 
 TEST_DIR = os.path.join(PROCESSED_DIR, "test")
 
 # Chemin du modèle entraîné (créé par train.py)
@@ -38,7 +38,8 @@ MODEL_PATH = "resnet_cellule.pth"
 # Fichier de sortie CSV
 CSV_OUT = "resultats_test.csv"
 
-# Mapping des classes 
+# Mapping des classes
+# c'est le même mapping que pendant l'entraînement
 # 0 = hem = sain ; 1 = all = malade
 IDX_TO_LABEL = {
     0: "Sain",
