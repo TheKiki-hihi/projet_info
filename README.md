@@ -27,7 +27,7 @@ Une fois le dataset téléchargé, les dossiers doivent être placés dans le pr
 respectant l’organisation attendue par le programme.
 
 Le dossier des données doit être organisée de la manière suivante :
-
+```
 C-NMC_Leukemia/
 ├── training_data/
 │   └── fold_0/
@@ -38,17 +38,9 @@ C-NMC_Leukemia/
 │   └── C-NMC_test_prelim_phase_data_labels.csv
 └── testing_data/
     └── C-NMC_test_final_phase_data/
-
+```
 
 Après avoir téléchargé le projet en .zip depuis Github et organisé le dataset, il faut lancer le script principal : python main.py.
-
-
-Il est aussi possible de lancer les parties séparément :
-python Matrice.py :  Prétraitement des images
-python ResNet_1er_gene.py : Entraînement du modèle
-python teste_resnet_cellule.py : Test et prédictions
-
-
 
 
 Données utilisées
