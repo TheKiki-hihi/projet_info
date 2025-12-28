@@ -110,6 +110,7 @@ def lancer_predictions():
     print(f"\n→ Device utilisé: {device}")
 
     # On charge l'architecture + les poids (via src/modele.py)
+    # Tout est centralisé dans src/model.py 
     modele = charger_modele(chemin_poids=MODEL_PATH, nb_classes=2, device=device)
     print("\n---Modèle chargé et prêt pour les prédictions---")
 
