@@ -31,8 +31,8 @@ PROCESSED_DIR = "processed_data"
 # Chemins attendus :
 # processed_data/train/hem/*.npy
 # processed_data/train/all/*.npy
-TRAIN_HEM_DIR = os.path.join(PROCESSED_DIR, "train", "hem")
-TRAIN_ALL_DIR = os.path.join(PROCESSED_DIR, "train", "all")
+TRAIN_HEM_DIR = os.path.join(PROCESSED_DIR, "train", "hem") # cellules saines
+TRAIN_ALL_DIR = os.path.join(PROCESSED_DIR, "train", "all") # cellules malades
 
 # Sauvegarde du modèle entraîné
 MODEL_PATH = "resnet_cellule.pth"
