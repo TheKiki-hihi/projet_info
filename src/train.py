@@ -92,7 +92,11 @@ class CellulesNPYDataset(Dataset):
 
 def _charger_paths_et_labels():
     """
-    Construit la liste de chemins .npy + labels à partir des dossiers hem/all.
+    Construit les listes :
+    - paths : chemins vers tous les fichiers .npy
+    - labels : labels associés (0 ou 1)
+
+    Avec lee label dépendant uniquement du dossier d'origine (hem ou all).
     """
     hem_paths = sorted(glob(os.path.join(TRAIN_HEM_DIR, "*.npy")))
     all_paths = sorted(glob(os.path.join(TRAIN_ALL_DIR, "*.npy")))
