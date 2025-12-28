@@ -123,13 +123,13 @@ def preparer_donnees():
     if not all_filepaths:
         print("Aucune image trouvée. Vérifiez les chemins.")
         return
-
+    # Création d'une DataFrame unique pour tout gérer proprement
     df = pd.DataFrame({
         "chemin_image": all_filepaths,
         "label": all_labels,
         "ensemble": all_sets
     })
-
+    # Petit résumé pour vérifier que tout est cohérent
     print("\nRépartition des images par ensemble :")
     print(df["ensemble"].value_counts())
 
