@@ -38,10 +38,10 @@ TRAIN_ALL_DIR = os.path.join(PROCESSED_DIR, "train", "all")
 MODEL_PATH = "resnet_cellule.pth"
 
 # Hyperparamètres 
-BATCH_SIZE = 32
-LR = 1e-4
-EPOCHS = 20
-TRAIN_SPLIT = 0.80  # 80% train, 20% val
+BATCH_SIZE = 32 # nombre d'images traitées en même temps
+LR = 1e-4 # learning rate (vitesse d'apprentissage)
+EPOCHS = 20 # nombre de passages complets sur le dataset
+TRAIN_SPLIT = 0.80  # 80% pour entraîner, 20% pour valider
 
 # Mapping des labels
 LABEL_HEM = 0   # "hem" = sain
