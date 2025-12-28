@@ -1,7 +1,7 @@
 # Projet Python – Classification de cellules sanguines
 
 Ce projet a été réalisé tout au long du semestre dans le cadre de notre 3ème année en licence.
-L’objectif principal était de créer un projet mêlant programmation Python, traitement d’images et apprentissage.
+L’objectif principal était de créer un projet mêlant programmation Python, traitement d’images et  faire apprendre une LML (large model learning).
 
 Le projet consiste à classifier des images de cellules sanguines afin de déterminer si une
 cellule est saine ou atteinte de leucémie.
@@ -17,6 +17,38 @@ Les données utilisées proviennent de la plateforme Kaggle et sont déjà class
 catégories, ce qui nous a permis de travailler sur un cas réel de classification supervisée :
 
 https://www.kaggle.com/datasets/andrewmvd/leukemia-classification 
+
+Il est nécessaire de télécharger le dataset complet et de le décompresser sur son
+ordinateur.
+
+Organisation des données sur le PC
+
+Une fois le dataset téléchargé, les dossiers doivent être placés dans le projet en
+respectant l’organisation attendue par le programme.
+
+Le dossier des données doit être organisée de la manière suivante :
+
+C-NMC_Leukemia/
+├── training_data/
+│   └── fold_0/
+│       ├── hem/
+│       └── all/
+├── validation_data/
+│   ├── C-NMC_test_prelim_phase_data/
+│   └── C-NMC_test_prelim_phase_data_labels.csv
+└── testing_data/
+    └── C-NMC_test_final_phase_data/
+
+
+Après avoir téléchargé le projet en .zip depuis Github et organisé le dataset, il faut lancer le script principal : python main.py.
+
+
+Il est aussi possible de lancer les parties séparément :
+python Matrice.py :  Prétraitement des images
+python ResNet_1er_gene.py : Entraînement du modèle
+python teste_resnet_cellule.py : Test et prédictions
+
+
 
 
 Données utilisées
