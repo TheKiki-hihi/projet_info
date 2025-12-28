@@ -248,7 +248,7 @@ def entrainer_modele():
         val_loss /= val_total
         val_acc = val_correct / val_total
 
-        # Affichage clair 
+        # Affichage clair pour le suivi
         print(f"Époque {epoch+1}/{EPOCHS}")
         print(f"  Train -> Loss: {train_loss:.4f}, Acc: {train_acc:.4f}")
         print(f"  Val   -> Loss: {val_loss:.4f}, Acc: {val_acc:.4f}")
