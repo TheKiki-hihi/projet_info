@@ -54,7 +54,7 @@ IDX_TO_LABEL = {
 def _liste_fichiers_test_npy():
     """
     Récupère tous les fichiers .npy présents dans processed_data/testing/
-    (en cherchant récursivement au cas où il y aurait des sous-dossiers).
+    (en cherchant récursivement au cas où il y aurait des sous-dossiers). 
     """
     # **/*.npy : recherche dans tous les sous-dossiers
     pattern = os.path.join(TEST_DIR, "**", "*.npy")
@@ -71,7 +71,7 @@ def lancer_predictions():
     Fonction appelée depuis main.py.
 
     Étapes :
-    1) Vérifier qu'on a le modèle et les données de test
+    1) Vérifier que le modèle et les données de test sont présent (sinon ça plante)
     2) Charger le modèle
     3) Parcourir les images .npy de test
     4) Prédire une classe et calculer la confiance
@@ -83,11 +83,12 @@ def lancer_predictions():
     ##############################################################  
     #                 Vérifications de base                      #
     ##############################################################  
+    # Vérifier que le modèle existe bien
     if not os.path.isfile(MODEL_PATH):
         print(f"[ERREUR] Modèle introuvable : {MODEL_PATH}")
         print("Lance d'abord l'entraînement (entrainer_modele).")
         return
-
+    # Vérifier que les données de test existent
     if not os.path.isdir(TEST_DIR):
         print(f"[ERREUR] Dossier test prétraité introuvable : {TEST_DIR}")
         print("Lance d'abord le prétraitement (preparer_donnees).")
