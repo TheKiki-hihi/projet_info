@@ -31,9 +31,9 @@ def creer_modele(nb_classes: int = 2, pretrained: bool = True) -> nn.Module:
         Le modèle ResNet18 avec la dernière couche (fc) remplacée.
     """
 
-    # ------------------------------------------------------------
-    # 1) Création du backbone ResNet18
-    # ------------------------------------------------------------
+    ##############################################################
+    #            Création du backbone ResNet18                   #
+    ##############################################################
     # Selon la version de torchvision, l'argument "pretrained" peut être déprécié.
     # On gère les deux cas pour éviter que ça casse chez quelqu'un d'autre.
     try:
@@ -47,9 +47,9 @@ def creer_modele(nb_classes: int = 2, pretrained: bool = True) -> nn.Module:
         # Ancienne API (torchvision plus ancienne)
         modele = models.resnet18(pretrained=pretrained)
 
-    # ------------------------------------------------------------
-    # 2) Remplacement de la couche finale
-    # ------------------------------------------------------------
+    ############################################################## 
+    #           Remplacement de la couche finale                 #
+    ############################################################## 
     # ResNet18 se termine par une couche fully-connected : modele.fc
     # On remplace cette couche pour obtenir nb_classes sorties.
     in_features = modele.fc.in_features
