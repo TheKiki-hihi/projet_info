@@ -83,9 +83,9 @@ class CellulesNPYDataset(Dataset):
 
 
 ############################################################## 
-# Créer la liste (paths, labels) depuis processed_data       # 
-############################################################## 
-#===========================================================
+   #    Créer la liste (paths, labels) depuis processed_data    # 
+################################################################# 
+
 
 def _charger_paths_et_labels():
     """
