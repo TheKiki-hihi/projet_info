@@ -62,10 +62,13 @@ class CellulesNPYDataset(Dataset):
     """
 
     def __init__(self, paths, labels):
+        # Liste des chemins vers les fichiers .npy
+        # Liste des labels associés
         self.paths = paths
         self.labels = labels
 
     def __len__(self):
+        # Nombre total d'images dans le dataset
         return len(self.paths)
 
     def __getitem__(self, idx):
